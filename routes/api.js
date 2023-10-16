@@ -117,4 +117,52 @@ router.post("/users/:id/exercises", async (req, res) => {
   });
 });
 
+// Log Route
+router.get("/users/:id/logs", async (req, res) => {
+  const { id } = req.params;
+  const { from, to, limit } = req.query;
+  const userExerciseQuery = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      exercises: {
+        select: {
+          description: true,
+          duration: true,
+          date: true,
+        },
+        where: {
+          // Conditionally include date range filtering if "from" and "to" parameters are provided
+          date: {
+            gte: from ? new Date(from) : undefined, // "undefined" if "from" is not provided
+            lte: to ? new Date(to) : undefined, // "undefined" if "to" is not provided
+          },
+        },
+        // Conditionally set the limit if "limit" parameter is provided
+        take: parseInt(limit) || undefined, // "undefined" if "limit" is not provided
+      },
+    },
+  });
+  if (!userExerciseQuery) {
+    res.status(400).json({
+      error: "invalid user id.",
+    });
+    return;
+  }
+  res.status(200).json({
+    _id: userExerciseQuery.id,
+    username: userExerciseQuery.username,
+    from: from ? new Date(from).toDateString() : undefined,
+    to: to ? new Date(to).toDateString() : undefined,
+    count: userExerciseQuery.exercises.length,
+    log: userExerciseQuery.exercises.map((item) => {
+      return {
+        description: item.description,
+        duration: item.duration,
+        date: item.date.toDateString(),
+      };
+    }),
+  });
+});
 module.exports = router;
