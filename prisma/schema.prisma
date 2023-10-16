@@ -22,5 +22,5 @@ model Exercise {
   userId      String
   description String
   duration    Int
-  date        DateTime
+  date        DateTime @default(now())
 }
