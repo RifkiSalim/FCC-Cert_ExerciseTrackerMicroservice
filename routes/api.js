@@ -119,8 +119,12 @@ router.post("/users/:id/exercises", async (req, res) => {
 
 // Log Route
 router.get("/users/:id/logs", async (req, res) => {
+  // Get user id
   const { id } = req.params;
+  // Get optional query params
   const { from, to, limit } = req.query;
+
+  // Retrieve user and logs
   const userExerciseQuery = await prisma.user.findUnique({
     where: {
       id,
@@ -135,12 +139,12 @@ router.get("/users/:id/logs", async (req, res) => {
         where: {
           // Conditionally include date range filtering if "from" and "to" parameters are provided
           date: {
-            gte: from ? new Date(from) : undefined, // "undefined" if "from" is not provided
-            lte: to ? new Date(to) : undefined, // "undefined" if "to" is not provided
+            gte: from ? new Date(from) : undefined,
+            lte: to ? new Date(to) : undefined,
           },
         },
         // Conditionally set the limit if "limit" parameter is provided
-        take: parseInt(limit) || undefined, // "undefined" if "limit" is not provided
+        take: parseInt(limit) || undefined,
       },
     },
   });
@@ -150,6 +154,7 @@ router.get("/users/:id/logs", async (req, res) => {
     });
     return;
   }
+  // Construct and respond with json
   res.status(200).json({
     _id: userExerciseQuery.id,
     username: userExerciseQuery.username,
